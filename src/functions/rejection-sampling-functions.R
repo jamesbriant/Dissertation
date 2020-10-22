@@ -17,7 +17,7 @@ f <- function(x){
 }
 
 drawSample <- function(n){
-  y <- runif(n, 0, 2.5)
+  y <- runif(n, 0, 3)
   # f(x) < 2.5 for x on [0,1]. Hence this is NOT most computationally efficient!
   
   # This is the g function!
