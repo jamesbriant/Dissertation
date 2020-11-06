@@ -1,0 +1,11 @@
+version: '3'
+
+services: 
+    rstudio:
+        build: .
+        volumes: 
+            - "./src:/home/rstudio/Documents"
+        ports: 
+            - "8787:8787"
+        environment: 
+            - PASSWORD=SecretPassword
