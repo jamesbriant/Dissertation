@@ -1,8 +1,5 @@
-# Kalman Filter Example in one dimension
-# For simplicity, let G(X(t))=1 for all t, hence the observed Y is just noisy X.
-# Let W=1, V=2.
-
 library(mvtnorm)
+library(plotly)
 
 GenerateKalmanData <- function(f, g, X0, W, V, n=20){
   # Generate the unobserved system X(t) and the observed data Y(t)
@@ -160,8 +157,6 @@ legend("topleft",
 ###########################################################################
 # Example: X-2D; Y-1D; 
 
-library(plotly)
-
 f <- matrix(c(2, 0, 0, 2), nrow=2, byrow=TRUE)
 g <- matrix(c(1, 1), nrow=1)
 
@@ -203,18 +198,16 @@ fig
 ###########################################################################
 # Example: X-2D; Y-2D; 
 
-library(plotly)
-
 f <- matrix(c(2, 0, 0, 2), nrow=2, byrow=TRUE)
 g <- matrix(c(1, 0, 0, 1), nrow=2, byrow=TRUE)
 
-W <- matrix(c(0.5, 0, 0, 0.5), nrow=2, byrow=TRUE)
-V <- matrix(c(5, 0, 0, 5), nrow=2, byrow=TRUE)
+W <- matrix(c(36, 0, 0, 36), nrow=2, byrow=TRUE)
+V <- matrix(c(144, 0, 0, 144), nrow=2, byrow=TRUE)
 
 #initial conditions
 X0 <- matrix(c(1, 1), nrow=2)
 
-n <- 6
+n <- 10
 systemData <- GenerateKalmanData(f, g, X0, W, V, n)
 X <- systemData$X
 Y <- systemData$Y
