@@ -10,7 +10,7 @@ n <- 5000 # number of samples to draw
 c_estimates <- numeric(n) # vector of estimates for c
 c_estimates[1] <- 1.00001
 
-y <- runif(n, 0, 2.3)
+y <- runif(n, 0, 2.6)
 x <- drawFromg(n)
 fx <- f(x)
 
