@@ -36,14 +36,7 @@ GenerateKalmanData <- function(f, g, X0, W, V, n=20){
   return(list(X=X, Y=Y))
 }
 
-CalcKalmanGain <- function(g, R, Q){
-  if(dim(Q)[1]==1){
-    return(1/as.numeric(Q) * g %*% R)
-  }
-  else{
-    return(g %*% R %*% solve(Q))
-  }
-}
+
 
 ApplyKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   # INPUTS:
@@ -60,7 +53,17 @@ ApplyKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   #   C:    list of posterior variance matrices for distn  of X at time t
   #   R:    list of prior variance matrices for distn of X at time t+1
   #   Q:    list of prior variance matrices for distn of Y at time t+1
-  #   K:    list of Kalman gain values for each time t
+  #   K:    list of Kalman gain values for each time 
+  
+  CalcKalmanGain <- function(R, G, Q){
+    if(dim(Q)[1]==1){
+      return(1/as.numeric(Q) * R %*% t(G))
+    }
+    else{
+      return(R %*% t(G) %*% solve(Q))
+    }
+  }
+  
   
   f.matrix <- as.matrix(f)
   g.matrix <- as.matrix(g)
@@ -84,9 +87,9 @@ ApplyKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   R[[1]] <- f.matrix %*% C0.matrix %*% t(f.matrix) + W.matrix
   Q[[1]] <- g.matrix %*% R[[1]] %*% t(g.matrix) + V.matrix
   
-  K[[1]] <- CalcKalmanGain(g.matrix, R[[1]], Q[[1]])
-  m[[1]] <- a[[1]] + t(K[[1]]) %*% (Y[[1]] - g.matrix %*% a[[1]])
-  C[[1]] <- (diag(p) -  t(K[[1]]) %*% g.matrix) %*% R[[1]]
+  K[[1]] <- CalcKalmanGain(R[[1]], g.matrix, Q[[1]])
+  m[[1]] <- a[[1]] + K[[1]] %*% (Y[[1]] - g.matrix %*% a[[1]])
+  C[[1]] <- (diag(p) -  K[[1]] %*% g.matrix) %*% R[[1]]
   
   for(t in 2:n){
     # predict
@@ -95,9 +98,9 @@ ApplyKalmanFilter <- function(Y, f, g, m0, C0, W, V){
     Q[[t]] <- g.matrix %*% R[[t]] %*% t(g.matrix) + V.matrix
     
     # update
-    K[[t]] <- CalcKalmanGain(g.matrix, R[[t]], Q[[t]])
-    m[[t]] <- a[[t]] + t(K[[t]]) %*% (Y[[t]] - g.matrix %*% a[[t]])
-    C[[t]] <- (diag(p) - t(K[[t]]) %*% g.matrix) %*% R[[t]]
+    K[[t]] <- CalcKalmanGain(R[[t]], g.matrix, Q[[t]])
+    m[[t]] <- a[[t]] + K[[t]] %*% (Y[[t]] - g.matrix %*% a[[t]])
+    C[[t]] <- (diag(p) - K[[t]] %*% g.matrix) %*% R[[t]]
   }
   
   return(list(a=a, m=m, C=C, R=R, Q=Q, K=K))
@@ -115,8 +118,8 @@ g <- 1
 X0 <- 1
 
 # Set variances
-W <- 1
-V <- 5
+W <- 4
+V <- 8
 
 n <- 7
 data <- GenerateKalmanData(f, g, X0, W, V, n)
@@ -160,7 +163,7 @@ legend("topleft",
 f <- matrix(c(2, 0, 0, 2), nrow=2, byrow=TRUE)
 g <- matrix(c(1, 1), nrow=1)
 
-W <- matrix(c(0.5, 0, 0, 0.5), nrow=2, byrow=TRUE)
+W <- matrix(c(0.5, 0, 0, 1.5), nrow=2, byrow=TRUE)
 V <- 5
 
 #initial conditions
