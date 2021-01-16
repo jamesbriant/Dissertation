@@ -73,9 +73,9 @@ ApplyExtendedKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   W.matrix <- as.matrix(W)
   V.matrix <- as.matrix(V)
   
-  f.m0 <- as.matrix(f(c(m0, 1)))
+  f.m0 <- as.matrix(f(c(m0.matrix, 1)))
   g.fm0 <- as.matrix(g(c(f.m0, 1)))
-  df.m0 <- RemoveTime(jacobian(f, c(m0, 1)))
+  df.m0 <- RemoveTime(jacobian(f, c(m0.matrix, 1)))
   dg.fm0 <- t(RemoveTime(jacobian(g, c(f.m0, 1))))
   
   n <- length(Y)
@@ -156,10 +156,29 @@ kalmanSolution <- ApplyExtendedKalmanFilter(Y, f, g, m0, C0, W, V)
 
 
 
+plot(1:n, unlist(X), type="l", xlab="time", ylab="state", main="")
+lines(1:n, unlist(kalmanSolution$m), col="red")
+points(1:n, unlist(kalmanSolution$m), col="red")
+#points(1:n, unlist(kalmanSolution$a), col="blue")
+#lines(1:n, unlist(kalmanSolution$a), col="blue")
+confidence <- 0.95
+confidenceRange <- qnorm(1-(1-confidence)/2) * unlist(kalmanSolution$C)
+segments(1:n, unlist(kalmanSolution$m) - confidenceRange, 1:n, unlist(kalmanSolution$m) + confidenceRange, col="red")
+legend(3.8, 4.1,
+       legend=c("X(t) - Unobserved System",
+                "m(t) - Estimated State",
+                "95% confident interval"), 
+       col=c("black", "red", "red"), 
+       lty=c(1, 1, NA), 
+       pch=c(NA, "o", "|")
+)
+
+
+
 plot(1:n, unlist(X), type="l", xlab="time", ylab="state")
 lines(1:n, unlist(kalmanSolution$m), col="red")
 points(1:n, unlist(kalmanSolution$m), col="red")
-points(1:n, unlist(kalmanSolution$a), col="blue")
+#points(1:n, unlist(kalmanSolution$a), col="blue")
 #lines(1:n, unlist(kalmanSolution$a), col="blue")
 legend("topleft", 
        legend=c("X(t) - Unobserved System",
@@ -169,6 +188,13 @@ legend("topleft",
        lty=c(1, 1, 0), 
        pch=c(26, 1, 1)
 )
+confidence <- 0.95
+confidenceRange <- qnorm(1-(1-confidence)/2) * unlist(kalmanSolution$C)
+lines(1:n, unlist(kalmanSolution$m) - confidenceRange, col="red", lty=3)
+lines(1:n, unlist(kalmanSolution$m) + confidenceRange, col="red", lty=3)
+
+
+
 
 
 #########################################################################
