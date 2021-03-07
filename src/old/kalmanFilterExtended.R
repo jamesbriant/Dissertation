@@ -117,9 +117,6 @@ ApplyExtendedKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   return(list(a=a, m=m, C=C, R=R, Q=Q, K=K))
 }
 
-
-
-
 #########################################################################
 # Example: X-1D; Y-1D;
 

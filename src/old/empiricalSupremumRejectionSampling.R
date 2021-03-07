@@ -3,16 +3,35 @@
 # Suppose we don't know the exact value of c, then we can estimate it.
 # We expect c to be just above 1.
 
-source('functions/rejection-sampling-functions.R')
+####################
+# Source files
+####################
+source("functions/Sampling.R")
 
-n <- 5000 # number of samples to draw
+####################
+# Start of Code
+####################
 
-c_estimates <- numeric(n) # vector of estimates for c
+# Beta distribution PDF with default values alpha=2 & beta=5
+BetaPDF <- function(x, alpha=2, beta=5){
+  # Recall Beta distribution is defined only on [0,1]
+  
+  numerator <- x^(alpha-1) * (1-x)^(beta-1) * gamma(alpha + beta)
+  denominator <- gamma(alpha) * gamma(beta)
+  
+  return(numerator/denominator)
+}
+
+# number of samples to draw
+n <- 250 
+
+# vector of estimates for c
+c_estimates <- numeric(n) 
 c_estimates[1] <- 1.00001
 
-y <- runif(n, 0, 2.6)
-x <- drawFromg(n)
-fx <- f(x)
+y <- runif(n, 0, 3.7)
+x <- GetUniformSample(n, 0, 1)
+fx <- BetaPDF(x)
 
 for(i in 2:n){
   c_estimates[i] <- max(c_estimates[i-1], fx[i-1]/2.3)
