@@ -26,7 +26,7 @@ BetaPDF <- function(x, alpha=2, beta=5){
 n <- 1000
 
 
-c <- 2.5
+c <- 2.4576
 
 BetaSample <- numeric(n)
 

@@ -52,7 +52,8 @@ ggmap(get_googlemap(center = c(mean(raw.data$lon),
                     maptype ='terrain',
                     color = 'color',
                     markers = df,
-                    path = df))
+                    path = df)
+      )
 
 
 

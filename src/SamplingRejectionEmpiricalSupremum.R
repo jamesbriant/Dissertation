@@ -44,13 +44,13 @@ for(i in 2:n){
 }
 
 ## plot the estimates
-plot(1:n, c_estimates, xlab="Iterations", ylab="c estimate", 
+plot(1:n, c_estimates, xlab="Iterations", ylab="c estimate", type="o",
      main="Empirical Supremum Rejection Sampling
      Beta(2,5) sampling from Unif(0,1)")
 ## plot the true value of c (can be found analytically)
 abline(h=2.4576, col="red")
 
-
+plot(1:n, log10(2.4576 - c_estimates), ylab="log(error) - base 10", type="l", xlab="Iteration", main="Empirical Supremum Rejection Sampling - Estimating c")
 
 ################################################################################
 # Example 2

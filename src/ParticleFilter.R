@@ -4,7 +4,7 @@ source("functions/Plotting.R")
 
 set.seed(2022)
 
-EvolutionEquation <- function(x){
+EvolutionEquation <- function(x, t){
   return(x + rnorm(1, 0, 1))
 }
 

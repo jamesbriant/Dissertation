@@ -36,3 +36,54 @@ importanceMean <- sum(fx*x/1)/n
 importanceMean
 
 # E[Beta(2,5)] = 2/7 = 0.285714
+
+
+
+#########################################################################
+
+N <- 100000 # number of approximations to be made
+n <- 500 # sample size (from proposal distribution)
+
+rejection.means <- numeric(N)
+importance.means <- numeric(N)
+
+for(i in 1:N){
+  y <- runif(n, 0, 2.5)
+  x <- GetUniformSample(n, 0, 1)
+  fx <- BetaPDF(x)
+  
+  rejectionSample <- x[y < fx]
+  importanceSample <- y
+  
+  rejection.means[i] <- mean(rejectionSample)
+  importance.means[i] <- sum(fx*x/1)/n
+}
+
+x <- seq(0.2, 0.4, length=200)
+par(mfrow=c(1,2))
+hist(rejection.means, freq=FALSE, xlab="Sample Means", main="Rejection Sampling Means")
+lines(x, dnorm(x, mean(rejection.means), sqrt(var(rejection.means))), col="red")
+hist(importance.means, freq=FALSE, xlab="Sample Means", main="Importance Sampling Means")
+lines(x, dnorm(x, mean(importance.means), sqrt(var(importance.means))), col="red")
+par(mfrow=c(1,1))
+
+
+mean(rejection.means)
+mean(importance.means)
+
+sqrt(var(rejection.means))
+sqrt(var(importance.means))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
