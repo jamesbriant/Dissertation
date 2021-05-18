@@ -151,8 +151,8 @@ ApplyExtendedKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   
   f.m0 <- as.matrix(f(c(m0.matrix, 1)))
   g.fm0 <- as.matrix(g(c(f.m0, 1)))
-  df.m0 <- RemoveTime(jacobian(f, c(m0.matrix, 1)))
-  dg.fm0 <- t(RemoveTime(jacobian(g, c(f.m0, 1))))
+  df.m0 <- RemoveTime(pracma::jacobian(f, c(m0.matrix, 1)))
+  dg.fm0 <- t(RemoveTime(pracma::jacobian(g, c(f.m0, 1))))
   
   n <- length(Y)
   p <- dim(dg.fm0)[2] # dim(m0)[1]
@@ -176,8 +176,8 @@ ApplyExtendedKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   for(t in 2:n){
     f.m <- as.matrix(f(c(m[[t-1]], t)))
     g.fm <- as.matrix(g(c(f.m, t)))
-    df.m <- RemoveTime(jacobian(f, c(m[[t-1]], t)))
-    dg.fm <- t(RemoveTime(jacobian(g, c(f.m, t))))
+    df.m <- RemoveTime(pracma::jacobian(f, c(m[[t-1]], t)))
+    dg.fm <- t(RemoveTime(pracma::jacobian(g, c(f.m, t))))
     
     # predict
     a[[t]] <- f.m
@@ -234,7 +234,7 @@ ApplyEnsembleKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   f.m0 <- matrix(0, nrow=p, ncol=size.ensemble)
   g.fm0 <- matrix(0, nrow=q, ncol=size.ensemble)
   for(i in 1:size.ensemble){
-    f.m0[, i] <- as.matrix(f(c(m0.matrix[, i], 1))) + rmvnorm(1, zeros(p, 1), W.matrix) 
+    f.m0[, i] <- as.matrix(f(c(m0.matrix[, i], 1))) + rmvnorm(1, t(t(numeric(p))), W.matrix) 
     g.fm0[, i] <- as.matrix(g(c(f.m0[, i], 1)))
   }
   
@@ -267,7 +267,7 @@ ApplyEnsembleKalmanFilter <- function(Y, f, g, m0, C0, W, V){
     f.m <- matrix(0, nrow=p, ncol=size.ensemble)
     g.fm <- matrix(0, nrow=q, ncol=size.ensemble)
     for(i in 1:size.ensemble){
-      f.m[, i] <- as.matrix(f(c(m[[t-1]][, i], t))) + rmvnorm(1, zeros(p, 1), W.matrix) 
+      f.m[, i] <- as.matrix(f(c(m[[t-1]][, i], t))) + rmvnorm(1, t(t(numeric(p))), W.matrix) 
       g.fm[, i] <- g(c(f.m[, i], t))
     }
     
