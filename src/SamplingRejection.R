@@ -25,6 +25,28 @@ BetaPDF <- function(x, alpha=2, beta=5){
 n <- 1000
 c <- 2.5
 
+####################
+# Plot the functions
+####################
+x.axis <- seq(0,1, length=200)
+plot(x.axis, dbeta(x.axis, 2, 5), type="l", xlab="x", ylab="Density", main="Distribution Comparison")
+lines(x.axis, dunif(x.axis, 0, 1), col="blue")
+legend("topright", 
+       legend=c("Beta(2,5)",
+                "Uniform[0,1]"),
+       lty=c(1,1),
+       col=c("black", "blue")
+       )
+
+plot(x.axis, dbeta(x.axis, 2, 5), type="l", xlab="x", ylab="Density", main="Envolope Function")
+lines(x.axis, 2.4576*dunif(x.axis, 0, 1), col="red")
+legend("right", 
+       legend=c("Beta(2,5)",
+                "Envelope Function"),
+       lty=c(1,1),
+       col=c("black", "red")
+)
+
 # Run the algorithm
 U <- runif(n, 0, 1)
 X <- GetUniformSample(n, 0, 1)
