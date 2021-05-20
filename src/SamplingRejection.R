@@ -23,34 +23,52 @@ BetaPDF <- function(x, alpha=2, beta=5){
 
 # Use 1000 attempts
 n <- 1000
-c <- 2.5
+c <- 2.4576
 
 ####################
 # Plot the functions
 ####################
 x.axis <- seq(0,1, length=200)
 plot(x.axis, dbeta(x.axis, 2, 5), type="l", xlab="x", ylab="Density", main="Distribution Comparison")
-lines(x.axis, dunif(x.axis, 0, 1), col="blue")
+lines(x.axis, dunif(x.axis, 0, 1), col="red")
 legend("topright", 
        legend=c("Beta(2,5)",
                 "Uniform[0,1]"),
        lty=c(1,1),
-       col=c("black", "blue")
+       col=c("black", "red")
        )
 
 plot(x.axis, dbeta(x.axis, 2, 5), type="l", xlab="x", ylab="Density", main="Envolope Function")
-lines(x.axis, 2.4576*dunif(x.axis, 0, 1), col="red")
+lines(x.axis, c*dunif(x.axis, 0, 1), col="blue")
 legend("right", 
        legend=c("Beta(2,5)",
                 "Envelope Function"),
        lty=c(1,1),
-       col=c("black", "red")
+       col=c("black", "blue")
 )
 
 # Run the algorithm
 U <- runif(n, 0, 1)
 X <- GetUniformSample(n, 0, 1)
-Y <- X[U < BetaPDF(X)/c]
+accepted.set <- U < BetaPDF(X)/c
+Y <- X[accepted.set]
+U.accepted <- U[accepted.set]
+U.rejected <- U[!accepted.set]
+Y.rejected <- X[!accepted.set]
+
+plot(x.axis, dbeta(x.axis, 2, 5), type="l", xlab="x", ylab="Density", main="Rejection Algorithm Sample")
+lines(x.axis, c*dunif(x.axis, 0, 1), col="blue")
+points(X[accepted.set], c*U.accepted, pch=4, col="green")
+points(X[!accepted.set], c*U.rejected, pch=4, col="red")
+legend("right", 
+       legend=c("Beta(2,5)",
+                "Envelope Function",
+                "Accepted Sample",
+                "Rejected Sample"),
+       lty=c(1, 1, 0, 0),
+       pch=c(26, 26, 4, 4),
+       col=c("black", "blue", "green", "red")
+)
 
 ####################
 # Plot Histogram
@@ -62,4 +80,32 @@ rug(Y)
 
 
 
+####################
+# c' = 3.5
+####################
+
+c=3.5
+
+# Run the algorithm
+U <- runif(n, 0, 1)
+X <- GetUniformSample(n, 0, 1)
+accepted.set <- U < BetaPDF(X)/c
+Y <- X[accepted.set]
+U.accepted <- U[accepted.set]
+U.rejected <- U[!accepted.set]
+Y.rejected <- X[!accepted.set]
+
+plot(x.axis, dbeta(x.axis, 2, 5), type="l", xlab="x", ylab="Density", main="Suboptimal Rejection Algorithm Sample", ylim=c(0,3.5))
+lines(x.axis, c*dunif(x.axis, 0, 1), col="blue")
+points(X[accepted.set], c*U.accepted, pch=4, col="green")
+points(X[!accepted.set], c*U.rejected, pch=4, col="red")
+legend("right", 
+       legend=c("Beta(2,5)",
+                "Envelope Function",
+                "Accepted Sample",
+                "Rejected Sample"),
+       lty=c(1, 1, 0, 0),
+       pch=c(26, 26, 4, 4),
+       col=c("black", "blue", "green", "red")
+)
 
