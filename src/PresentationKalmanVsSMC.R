@@ -26,7 +26,7 @@ V <- as.matrix(1)
 
 set.seed(2022)
 
-n <- 15
+n <- 25
 data <- GenerateKalmanData(f, g, X0, W, V, n)
 X <- data$X
 Y <- data$Y
@@ -41,7 +41,8 @@ C0 <- W # variance
 kalman.solution <- ApplyKalmanFilter(Y, A, B, m0, C0, W, V)
 PlotKalmanSolution(unlist(X), 
                    unlist(kalman.solution$m), 
-                   unlist(kalman.solution$C)
+                   unlist(kalman.solution$C),
+                   location = "topleft"
 )
 #dev.off()
 
@@ -53,7 +54,7 @@ PlotKalmanSolution(unlist(X),
 
 set.seed(2022)
 
-EvolutionEquation <- function(x){
+EvolutionEquation <- function(x, t){
   return(x + rnorm(1, 0, 1))
 }
 
@@ -81,7 +82,7 @@ V <- 1
 
 X0 <- 0
 
-MaxT <- 15
+MaxT <- 25
 
 data <- GenerateKalmanData(f, g, X0, W, V, MaxT)
 
@@ -101,3 +102,35 @@ solution.SMC <- ApplyBootstrapFilter(unlist(data$Y),
                                      N)
 
 lines(1:MaxT, rowMeans(solution.SMC$particles), col="blue")
+suppressWarnings(legend("topleft", 
+                        legend=c("X(t) - Unobserved System",
+                                 "Kalman Posterior Mean",
+                                 "Particle Filter Mean"),
+                        col=c("black", "red", "blue"), 
+                        lty=c(0, 1, 1), 
+                        pch=c(1, 26, 26)
+))
+
+pf.variance.estimates <- numeric(n)
+pf.mean <- numeric(n)
+for(i in 1:n){
+  pf.variance.estimates[i] <- var(solution.SMC$particles[i, ])
+  pf.mean[i] <- mean(solution.SMC$particles[i, ])
+}
+confidence <- 0.95
+confidenceRange <- qnorm(1-(1-confidence)/2) * sqrt(pf.variance.estimates)
+polygon(c(1:n, n:1), 
+        c(pf.mean - confidenceRange, rev(pf.mean + confidenceRange)),
+        col=rgb(0, 0, 1, 0.075),
+        border=NA)
+lines(1:n, pf.mean - confidenceRange, col="blue", lty=2)
+lines(1:n, pf.mean + confidenceRange, col="blue", lty=2)
+
+MAE.PF <- mean(abs(unlist(X) - pf.mean))
+MAE.PF
+MAE.KF <- mean(abs(unlist(X) - unlist(kalman.solution$m)))
+MAE.KF
+
+##############
+hist(solution.SMC$particles[20, ], xlab="Particles", freq=FALSE, main="Distribution of Particles at t=20")
+lines(seq(-4, 4, length=300), dnorm(seq(-4, 4, length=300), mean(solution.SMC$particles[20, ]), sqrt(var(solution.SMC$particles[20, ]))), col="red")

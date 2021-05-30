@@ -29,28 +29,48 @@ BetaPDF <- function(x, alpha=2, beta=5){
 n <- 500
 
 ## vector of estimates for c
-c_estimates <- numeric(n)
+c_estimates <- numeric(n+1)
 c_estimates[1] <- 1
+correct.classification <- rep(TRUE, n)
+
+X <- runif(n)
+U <- runif(n)
   
 ## algorithm implementation
-for(i in 2:n){
-  U <- SimulateU()
-  X <- GetUniformSample(1, 0, 1)
-  ratio <- BetaPDF(X)/GetUniformPDF(X, 0, 1)
+for(i in 1:n){
+  ratio <- BetaPDF(X[i])/GetUniformPDF(X[i], 0, 1)
   
-  ## We don't care if the sample is accepted or rejected for estimating c
+  if(c_estimates[i]*U[i] < BetaPDF(X[i]) && 2.4576*U[i] > BetaPDF(X[i])){
+    correct.classification[i] <- FALSE
+  }
   
-  c_estimates[i] <- max(c_estimates[i-1], ratio)
+  c_estimates[i+1] <- max(c_estimates[i], ratio)
 }
 
+c <- 2.4576
+x.axis <- seq(0,1, length=200)
+plot(x.axis, dbeta(x.axis, 2, 5), type="l", xlab="x", ylab="Density", main="Empirical Supremum Rejection - Mistakes")
+lines(x.axis, c*dunif(x.axis, 0, 1), col="blue")
+points(X[correct.classification], c*U[correct.classification], pch=4, col="cadetblue1")
+points(X[!correct.classification], c*U[!correct.classification], pch=19, col="darkviolet")
+legend("bottomleft", 
+       legend=c("Beta(2,5)",
+                "Envelope Function",
+                "Correctly Classified",
+                "Incorrectly Accepted"),
+       lty=c(1, 1, 0, 0),
+       pch=c(26, 26, 4, 19),
+       col=c("black", "blue", "cadetblue1", "darkviolet")
+)
+
+
 ## plot the estimates
-plot(1:n, c_estimates, xlab="Iterations", ylab="c estimate", type="o",
-     main="Empirical Supremum Rejection Sampling
-     Beta(2,5) sampling from Unif(0,1)")
+plot(1:200, c_estimates[1:200], xlab="Iterations", ylab="c estimate", type="o",
+     main="Estimating c - Convergence")
 ## plot the true value of c (can be found analytically)
 abline(h=2.4576, col="red")
 
-plot(1:n, log10(2.4576 - c_estimates), ylab="log(error) - base 10", type="l", xlab="Iteration", main="Empirical Supremum Rejection Sampling - Estimating c")
+plot(1:(n+1), log10(2.4576 - c_estimates), ylab="log(error) in base 10", type="l", xlab="Iteration", main="Estimating c - Logarithmic Error")
 
 ################################################################################
 # Example 2

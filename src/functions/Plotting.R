@@ -18,17 +18,19 @@ LoadAV <- function(){
 # Function definitions for plotting DLM data
 #############
 
-PlotKalmanSolution <- function(X, m, C, confidence=0.95){
+PlotKalmanSolution <- function(X, m, C, confidence=0.95, location="topleft"){
   # INPUT
   #   X:  true DLM system states at times 1,...,T, vector
   #   m:  estimated system states, vector
   #   C:  estimated variance, vector
   #   confidence: size of confidence bands on estimate
+  
+  #Loadexpm()
 
   n <- length(X)
   plot(1:n, X, xlab="time", ylab="system state", ylim=c(min(X, m)-1, max(X, m)+1))
 
-  confidenceRange <- qnorm(1-(1-confidence)/2) * C
+  confidenceRange <- qnorm(1-(1-confidence)/2) * sqrt(C)
   polygon(c(1:n, n:1), 
         c(m - confidenceRange, rev(m + confidenceRange)),
         col=rgb(1, 0, 0, 0.075),
@@ -39,7 +41,7 @@ PlotKalmanSolution <- function(X, m, C, confidence=0.95){
 
   #plot(1:length(X), X, add=TRUE)
 
-  suppressWarnings(legend("topleft", 
+  suppressWarnings(legend(location, 
         legend=c("X(t) - Unobserved System",
                   "m(t) - Posterior",
                   paste0(100*confidence, "% confidence region")),

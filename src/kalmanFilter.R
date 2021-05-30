@@ -69,11 +69,11 @@ V <- as.matrix(1)
 
 set.seed(2022)
 
-n <- 15
+n <- 25
 data <- GenerateKalmanData(f, g, X0, W, V, n)
 X <- data$X
 Y <- data$Y
-plot(0:n, c(0, unlist(Y)), xlab="time", ylab="Obersations", main="Obersavtions Time Series")
+#plot(0:n, c(0, unlist(Y)), xlab="time", ylab="Obersations", main="Obersavtions Time Series")
 
 
 # Initial estimates
@@ -92,11 +92,14 @@ PlotKalmanSolution(unlist(X),
 # Example: X-2D; Y-1D; 
 
 f <- function(x){
-  return(matrix(c(2, 0, 0, 2), nrow=2, byrow=TRUE))
+  return(matrix(c(2, 0, 0, 2), nrow=2, byrow=TRUE) %*% x[1])
 }
 g <- function(x){
-  return(matrix(c(1, 1), nrow=1))
+  return(matrix(c(1, 1), nrow=1) %*% x[1])
 }
+
+a <- matrix(c(2, 0, 0, 2), nrow=2, byrow=TRUE)
+b <- matrix(c(1, 1), nrow=1)
 
 W <- matrix(c(1, 0, 0, 2), nrow=2, byrow=TRUE)
 V <- 4
@@ -113,7 +116,7 @@ Y <- systemData$Y
 m0 <- X0 # mean
 C0 <- W # variance
 
-kalmanSolution <- ApplyKalmanFilter(Y, f, g, m0, C0, W, V)
+kalmanSolution <- ApplyKalmanFilter(Y, a, b, m0, C0, W, V)
 
 data <- data.frame(time=1:n,
                    X1=unlist(X)[2*(1:n)-1], 
@@ -192,13 +195,116 @@ fig
 
 
 
+################################################################################
+# Laplacian observation noise
+
+# Example: X-1D; Y-1D;
+# stationary model
+
+A <- as.matrix(1)
+B <- as.matrix(1)
+
+f <- function(x){
+  return(A %*% x[1])
+}
+g <- function(x){
+  return(B %*% x[1])
+}
+
+X0 <- as.matrix(0)
+
+# Set variances
+W <- as.matrix(1)
+b <- 1
+V <- as.matrix(b)
+
+set.seed(2022)
+
+n <- 25
+data.lap <- GenerateKalmanDataLaplacian(f, g, X0, W, b, n)
+X.lap <- data.lap$X
+Y.lap <- data.lap$Y
+#plot(0:n, c(0, unlist(Y)), xlab="time", ylab="Obersations", main="Obersavtions Time Series")
 
 
+# Initial estimates
+m0 <- X0 # mean
+C0 <- W # variance
+
+#SavePlotToPNG("plots/KalmanStationary.png")
+kalmanSolution.lap <- ApplyKalmanFilter(Y.lap, A, B, m0, C0, W, V)
+PlotKalmanSolution(unlist(X), 
+                   unlist(kalmanSolution.lap$m), 
+                   unlist(kalmanSolution.lap$C),
+                   location="topright"
+)
 
 
+plot(seq(-5, 5, length=300), dnorm(seq(-5, 5, length=300)), type="l", ylim=c(0, 0.5), xlab="x", ylab="Density", main="Gaussian vs Laplacian PDFs")
+lines(seq(-5, 5, length=500), LaplacianPDF(seq(-5, 5, length=500)), col="red")
+legend("topleft",
+       legend=c("N(0,1)",
+                "Laplacian(0,1)"),
+       col=c("black", 
+             "red"),
+       lty=c(1, 1)
+       )
+
+MAE.lap <- mean(abs(unlist(X.lap) - unlist(kalmanSolution.lap$m)))
+MAE.lap
+MAE.gaussian <- mean(abs(unlist(X) - unlist(kalmanSolution$m)))
+MAE.gaussian
 
 
+################################################################################
+# Missing data example
+
+# Example: X-1D; Y-1D;
+# stationary model
+
+A <- as.matrix(1)
+B <- as.matrix(1)
+
+f <- function(x){
+  return(A %*% x[1])
+}
+g <- function(x){
+  return(B %*% x[1])
+}
+
+X0 <- as.matrix(0)
+
+# Set variances
+W <- as.matrix(1)
+V <- as.matrix(1)
+
+set.seed(2022)
+
+n <- 25
+data <- GenerateKalmanData(f, g, X0, W, V, n)
+X <- data$X
+Y <- data$Y
+Y.thinned <- ThinData(Y, 0.85)
+#plot(0:n, c(0, unlist(Y)), xlab="time", ylab="Obersations", main="Obersavtions Time Series")
 
 
+# Initial estimates
+m0 <- X0 # mean
+C0 <- W # variance
 
-
+kalmanSolution <- ApplyKalmanFilterThinned(Y.thinned, A, B, m0, C0, W, V)
+PlotKalmanSolution(unlist(X), 
+                   unlist(kalmanSolution$m), 
+                   unlist(kalmanSolution$C),
+                   location = "bottomright"
+)
+points(which(is.na(unlist(Y.thinned))), unlist(X)[which(is.na(unlist(Y.thinned)))], col="magenta", pch=15)
+suppressWarnings(legend("bottomright", 
+                        legend=c("X(t) - Unobserved System",
+                                 "m(t) - Posterior",
+                                 paste0(100*0.95, "% confidence region"),
+                                 "Missing observation"),
+                        col=c("black", "red", "red", "magenta"), 
+                        lty=c(0, 1, 2, 0), 
+                        pch=c(1, 26, 26, 15)
+))

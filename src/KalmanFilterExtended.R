@@ -50,8 +50,8 @@ PlotKalmanSolution(unlist(X),
 #########################################################################
 # Example: X-1D; Y-1D; Logisitic equation - population growth
 
-r <- 0.1
-K <- 6000
+r <- 0.05
+K <- 3000
 
 f <- function(x){
   X <- x[1]
@@ -65,14 +65,14 @@ f <- function(x){
 g <- function(x){
   X <- x[1]
   t <- x[2]
-  return(X*0.9)
+  return(X*0.2)
 }
 
-X0 <- 500
+X0 <- 100
 
 # Set variances
 W <- 16000
-V <- 400
+V <- 25
 
 n <- 100
 data <- GenerateKalmanData(f, g, X0, W, V, n)

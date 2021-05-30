@@ -128,8 +128,8 @@ g <- function(x){
 X0 <- as.matrix(0)
 
 # Set variances
-W <- as.matrix(0.5)
-V <- as.matrix(5)
+W <- as.matrix(5)
+V <- as.matrix(0.5)
 
 set.seed(2022)
 
