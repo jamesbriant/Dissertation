@@ -255,6 +255,7 @@ ApplyParamLearnAuxFilter <- function(data, x0, psi0, theta, Evolve, SystemNoise,
     particles.tilde[[t]] <- matrix(0, nrow=no.states, ncol=no.particles)
     
     psi[[t+1]] <- matrix(0, nrow=no.params, ncol=no.particles)
+    print(t)
     I <- rmultinom(1, no.particles, expected.likelihood)
     i <- 0
     for(k in 1:no.particles){
