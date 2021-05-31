@@ -34,12 +34,14 @@ StandardiseTimes <- function(raw.times){
   return(times.seconds.final)
 }
 
-MaxS <- 36
+MaxS <- 50
 
 # read in the raw data
 #raw.data <- read.csv("data/20210320135655.csv") # 1st walk
-raw.data <- read.csv("data/20210322154634.csv")[1:(MaxS+1), ] # circle walk
+raw.data <- read.csv("data/20210322154634.csv")#[1:(MaxS+1), ] # circle walk
 #raw.data <- read.csv("data/20210322162522.csv")[1:(MaxS+1), ] # straight walk
+
+MaxS <- length(raw.data$lat)-1
 
 times <- StandardiseTimes(raw.data$time)
 
@@ -65,7 +67,7 @@ EvolutionEquation <- function(X, s, psi, theta){
     dy <- r*sin(theta - pi/2)
     
     if(theta < -pi/2){
-      x.next <- x - dx
+      x.next <- x + dx
       y.next <- y - dy
     }else{
       x.next <- x + dx
@@ -76,7 +78,7 @@ EvolutionEquation <- function(X, s, psi, theta){
     dy <- r*cos(theta)
     
     if(theta < 0){
-      x.next <- x - dx
+      x.next <- x + dx
       y.next <- y + dy
     }else{
       x.next <- x + dx
@@ -120,11 +122,12 @@ CalculateNewTheta <- function(X.new, X.old){
     theta <- atan((X.new[1] - X.old[1])/(X.new[2] - X.old[2])) + pi/2
   }
   
-  if(X.new[1] < X.old[1]){
-    theta <- -theta
-  }
+  # if(X.new[1] < X.old[1]){
+  #   theta <- -theta
+  # }
   
   return(ThetaCheckDomain(theta))
+  #return(theta)
 }
 
 #sorted
@@ -170,6 +173,30 @@ sol <- ApplyParamLearnAuxFilter(data.list[2:(MaxS+1)],
 
 
 
+x.sol <- numeric(MaxS)
+y.sol <- numeric(MaxS)
+for(t in 1:MaxS){
+  x.sol[t] <- mean(sol$particles[[t]][1, ])
+  y.sol[t] <- mean(sol$particles[[t]][2, ])
+}
+df.sol <- data.frame(x = x.sol,
+                     y = y.sol)
+
+# get google cloud key
+source("functions/GoogleKeyInfo.R")
+MY_KEY <- GetKey()
+ggmap::register_google(key = MY_KEY)
+
+ggmap(get_googlemap(center = c(mean(raw.data$lon), 
+                               mean(raw.data$lat)),
+                    zoom = 16, 
+                    size = c(640, 320),
+                    scale = 2,
+                    maptype ='terrain',
+                    color = 'color',
+                    markers = df.sol,
+                    path = df.sol)
+)
 
 
 
