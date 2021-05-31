@@ -292,13 +292,24 @@ ApplyEnsembleKalmanFilter <- function(Y, f, g, m0, C0, W, V){
   for(i in 1:size.ensemble){
     y[, i] <- rmvnorm(q, Y[[1]], V.matrix) 
   }
-  ybar <- CalculateMeanVector(y)
-  Ey <- CalculateCenteredVector(y, ybar, size.ensemble)
-  Qprime[[1]] <- CalculateSampleCovariance(Ey, size.ensemble)
+  #ybar <- CalculateMeanVector(y)
+  #Ey <- CalculateCenteredVector(y, ybar, size.ensemble)
+  #Qprime[[1]] <- CalculateSampleCovariance(Ey, size.ensemble)
   
   #K[[1]] <- Ea %*% t(Ey) %*% solve(Ey %*% t(Ey))
-  dg.fm <- t(RemoveTime(pracma::jacobian(g, c(a[[1]], 1))))
-  K[[1]] <- Ea %*% t(Ea) %*% dg.fm %*% solve(Qprime[[1]])/(size.ensemble-1)
+  #dg.fm <- t(RemoveTime(pracma::jacobian(g, c(a[[1]], 1))))
+  #K[[1]] <- Ea %*% t(Ea) %*% dg.fm %*% solve(Qprime[[1]])/(size.ensemble-1)
+  
+  Ga <- matrix(0, nrow=q, ncol=size.ensemble)
+  for(i in 1:size.ensemble){
+    Ga[1, i] <- g(c(a[[1]][i], 1))
+  }
+  Ga.bar <- CalculateMeanVector(Ga)
+  E.Ga <- CalculateCenteredVector(Ga, Ga.bar, size.ensemble)
+  
+  K[[1]] <- Ea %*% t(E.Ga) %*% solve(E.Ga %*% t(E.Ga)/(size.ensemble-1))/(size.ensemble-1)
+  
+  
   
   m[[1]] <- matrix(0, nrow=p, ncol=size.ensemble)
   for(i in 1:size.ensemble){
@@ -327,13 +338,23 @@ ApplyEnsembleKalmanFilter <- function(Y, f, g, m0, C0, W, V){
     for(i in 1:size.ensemble){
       y[, i] <- rmvnorm(q, Y[[t]], V.matrix) 
     }
-    ybar <- CalculateMeanVector(y)
-    Ey <- CalculateCenteredVector(y, ybar, size.ensemble)
-    Qprime[[t]] <- CalculateSampleCovariance(Ey, size.ensemble)
+    #ybar <- CalculateMeanVector(y)
+    #Ey <- CalculateCenteredVector(y, ybar, size.ensemble)
+    #Qprime[[t]] <- CalculateSampleCovariance(Ey, size.ensemble)
     
     #K[[t]] <- Ea %*% t(Ey) %*% solve(Ey %*% t(Ey))
-    dg.fm <- t(RemoveTime(pracma::jacobian(g, c(a[[t]], t))))
-    K[[t]] <- Ea %*% t(Ea) %*% dg.fm %*% solve(Qprime[[t]])/(size.ensemble-1)
+    #dg.fm <- t(RemoveTime(pracma::jacobian(g, c(a[[t]], t))))
+    #K[[t]] <- Ea %*% t(Ea) %*% dg.fm %*% solve(Qprime[[t]])/(size.ensemble-1)
+    
+    
+    Ga <- matrix(0, nrow=q, ncol=size.ensemble)
+    for(i in 1:size.ensemble){
+      Ga[1, i] <- g(c(a[[t]][i], t))
+    }
+    Ga.bar <- CalculateMeanVector(Ga)
+    E.Ga <- CalculateCenteredVector(Ga, Ga.bar, size.ensemble)
+    
+    K[[t]] <- Ea %*% t(E.Ga) %*% solve(E.Ga %*% t(E.Ga)/(size.ensemble-1))/(size.ensemble-1)
     
     m[[t]] <- matrix(0, nrow=p, ncol=size.ensemble)
     for(i in 1:size.ensemble){
@@ -344,7 +365,7 @@ ApplyEnsembleKalmanFilter <- function(Y, f, g, m0, C0, W, V){
     C[[t]] <- CalculateSampleCovariance(Em, size.ensemble)
   }
   
-  return(list(abar=abar, mbar=mbar, C=C, R=R, Qprime=Qprime, K=K))
+  return(list(abar=abar, mbar=mbar, C=C, R=R, K=K))#, Qprime=Qprime))
 }
 
 ApplyKalmanFilterThinned <- function(Y, f, g, m0, C0, W, V){
@@ -433,4 +454,51 @@ ThinData <- function(data, p=0.95){
   }
   
   return(thinned.data.list)
+}
+
+
+
+###########################################################
+
+ApplyKalmanSmoother <- function(f, a, m, R, C){
+  # INPUTS:
+  #   f:    matrix
+  #   a:    list of prior means of distribution of X
+  #   m:    list of posterior means of distribution of X
+  #   R:    list of prior variances of distribution of X
+  #   C:    list of posterior variances of distribution of X
+  # OUTPUTS:
+  #   s:    list of smoothed distribution mean of X given y at t
+  #   S:    list of smoothed distribution variance matrices of X at time t
+  
+  Invert <- function(R){
+    if(dim(R)[1]==1){
+      return(as.matrix(1/as.numeric(R)))
+    }
+    else{
+      return(solve(R))
+    }
+  }
+  
+  f.matrix <- as.matrix(f)
+  
+  n <- length(a)
+  
+  s <- list()
+  S <- list()
+  
+  # Perform initial calculation using initial conditions
+  s[[1]] <- m[[n]]
+  S[[1]] <- C[[n]]
+  
+  for(i in 2:n){
+    t <- n - i + 1
+    A <- C[[t]] %*% t(f) %*% Invert(R[[t+1]])
+    
+    # predict
+    s[[i]] <- m[[t]] + A %*% (as.matrix(s[[i-1]] - a[[t+1]]))
+    S[[i]] <- C[[t]] + A %*% (as.matrix(S[[i-1]] - R[[t+1]])) %*% t(A)
+  }
+  
+  return(list(s=rev(s), S=rev(S)))
 }

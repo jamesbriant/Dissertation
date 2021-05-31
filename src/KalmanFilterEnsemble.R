@@ -54,41 +54,42 @@ PlotKalmanSolution(unlist(X),
 r <- 0.1
 K <- 6000
 
-# f <- function(x){
-#   X <- x[1]
-#   t <- x[2]
-#   
-#   dPdt <- r*X*(1-X/K)
-#   
-#   return(X + dPdt)
-# }
-# 
-# g <- function(x){
-#   X <- x[1]
-#   t <- x[2]
-#   return(X*0.9)
-# }
-
 f <- function(x){
   X <- x[1]
   t <- x[2]
-  
-  return(X)
+
+  dPdt <- r*X*(1-X/K)
+
+  return(X + dPdt)
 }
 
 g <- function(x){
   X <- x[1]
   t <- x[2]
-  return(X)
+  return(X*0.2)
 }
 
-X0 <- 500
+# f <- function(x){
+#   X <- x[1]
+#   t <- x[2]
+#   
+#   return(X)
+# }
+# 
+# g <- function(x){
+#   X <- x[1]
+#   t <- x[2]
+#   return(0.2*X)
+# }
+
+X0 <- 200
 
 # Set variances
-W <- 600
-V <- 40
+W <- 18000
+V <- 12000
 
 n <- 100
+set.seed(2021)
 data <- GenerateKalmanData(f, g, X0, W, V, n)
 X <- data$X
 Y <- data$Y
@@ -102,13 +103,14 @@ C0 <- W # variance
 extended.kalman.solution <- ApplyExtendedKalmanFilter(Y, f, g, m0, C0, W, V)
 PlotKalmanSolution(unlist(X), 
                    unlist(extended.kalman.solution$m), 
-                   unlist(extended.kalman.solution$C)
+                   unlist(extended.kalman.solution$C),
+                   location = "bottomright"
 )
 
 
 
 
-M <- 5
+M <- 40
 
 # Initial estimates
 m0 <- t(as.matrix(X0 + rnorm(M, 0, sqrt(W)))) # mean
@@ -117,11 +119,12 @@ C0 <- W # variance
 ensemble.kalman.solution <- ApplyEnsembleKalmanFilter(Y, f, g, m0, C0, W, V)
 PlotKalmanSolution(unlist(X), 
                    unlist(ensemble.kalman.solution$mbar), 
-                   unlist(ensemble.kalman.solution$C)
+                   unlist(ensemble.kalman.solution$C),
+                   location = "bottomright"
 )
 
 confidence=0.95
-confidenceRange <- qnorm(1-(1-confidence)/2) * unlist(ensemble.kalman.solution$C)
+confidenceRange <- qnorm(1-(1-confidence)/2) * sqrt(unlist(ensemble.kalman.solution$C))
 polygon(c(1:n, n:1), 
         c(unlist(ensemble.kalman.solution$mbar) - confidenceRange, rev(unlist(ensemble.kalman.solution$mbar) + confidenceRange)),
         col=rgb(0, 0, 1, 0.075),
