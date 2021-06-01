@@ -132,3 +132,6 @@ polygon(c(1:n, n:1),
 lines(1:n, unlist(ensemble.kalman.solution$mbar) - confidenceRange, col="blue", lty=2)
 lines(1:n, unlist(ensemble.kalman.solution$mbar) + confidenceRange, col="blue", lty=2)
 lines(1:n, unlist(ensemble.kalman.solution$mbar), col="blue", lty=1)
+
+MAE.5 <- mean(abs(unlist(X) - unlist(ensemble.kalman.solution$mbar)))
+MAE

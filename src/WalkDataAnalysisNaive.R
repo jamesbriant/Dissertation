@@ -13,6 +13,11 @@ library(ggmap)
 source("functions/SMC.R")
 source("functions/Plotting.R")
 
+# get google cloud key
+source("functions/GoogleKeyInfo.R")
+MY_KEY <- GetKey()
+ggmap::register_google(key = MY_KEY)
+
 #####################
 # Code
 #####################
@@ -46,6 +51,18 @@ times <- StandardiseTimes(raw.data$time)
 
 df <- data.frame(x = raw.data$lon,
                  y = raw.data$lat)
+
+
+ggmap(get_googlemap(center = c(mean(raw.data$lon),
+                               mean(raw.data$lat)),
+                    zoom = 16,
+                    size = c(640, 320),
+                    scale = 2,
+                    maptype ='terrain',
+                    color = 'color',
+                    markers = df,
+                    path = df)
+)
 
 velocity.x <- (df$x[MaxS+1] - df$x[1])/times[MaxS]
 velocity.y <- (df$y[MaxS+1] - df$y[1])/times[MaxS]
@@ -115,10 +132,7 @@ PlotSMCSolution(sol.y$particles.tilde, sol.y$weights, 3)
 df.sol <- data.frame(x = rowMeans(sol.x$particles),
                      y = rowMeans(sol.y$particles))
 
-# get google cloud key
-source("functions/GoogleKeyInfo.R")
-MY_KEY <- GetKey()
-ggmap::register_google(key = MY_KEY)
+
 
 ggmap(get_googlemap(center = c(mean(raw.data$lon), 
                                mean(raw.data$lat)),
