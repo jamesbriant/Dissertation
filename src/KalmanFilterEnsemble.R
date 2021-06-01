@@ -110,7 +110,7 @@ PlotKalmanSolution(unlist(X),
 
 
 
-M <- 40
+M <- 5
 
 # Initial estimates
 m0 <- t(as.matrix(X0 + rnorm(M, 0, sqrt(W)))) # mean
